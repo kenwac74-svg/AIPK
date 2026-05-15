@@ -1,0 +1,238 @@
+name: Update packaged LONGRISE zip
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-zip:
+    if: ${{ !contains(github.event.head_commit.message, 'Update packaged LONGRISE zip for V8.6 policy') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Patch source and dist inside zip
+        run: |
+          set -euo pipefail
+          ZIP="LONGRISE-AI-MAIN-main (2).zip"
+          rm -rf __zipwork
+          mkdir __zipwork
+          unzip -q "$ZIP" -d __zipwork
+
+          node <<'NODE'
+          const fs = require('fs');
+          const path = require('path');
+          const root = path.join('__zipwork', 'LONGRISE-AI-MAIN-main', 'LONGRISE-AI-MAIN-main');
+
+          const exact = [
+            // App and shared policy data
+            ["basic: { usdt: 7, cnyt: 2, penalty: { '1-6': 30, '7-9': 20, '10-11': 15 }, maturity: '12 Months', min: 200 }", "basic: { usdt: 7, cnyt: 2, penalty: { '0-3': 30, '4-6': 20, '7-11': 10 }, maturity: 'Recommended 12 Months', min: 200 }"],
+            ["standard: { usdt: 9, cnyt: 4, penalty: { '1-6': 30, '7-9': 20, '10-11': 15 }, maturity: '12 Months', min: 500 }", "standard: { usdt: 9, cnyt: 4, penalty: { '0-3': 30, '4-6': 20, '7-11': 10 }, maturity: 'Recommended 12 Months', min: 500 }"],
+            ["premium: { usdt: 11, cnyt: 6, penalty: { '1-6': 30, '7-9': 20, '10-11': 15 }, maturity: '12 Months', min: 1000 }", "premium: { usdt: 11, cnyt: 6, penalty: { '0-3': 30, '4-6': 20, '7-11': 10 }, maturity: 'Recommended 12 Months', min: 1000 }"],
+            ["vip: { usdt: 18, cnyt: 10, penalty: { '1-6': 30, '7-9': 20, '10-11': 15 }, maturity: '12 Months', min: 5000 }", "vip: { usdt: 18, cnyt: 10, penalty: { '0-3': 30, '4-6': 20, '7-11': 10 }, maturity: 'Recommended 12 Months', min: 5000 }"],
+            ["earlyWithdrawalPenalty: { '1-6': 30, '7-9': 20, '10-11': 15 }", "earlyWithdrawalPenalty: { '0-3': 30, '4-6': 20, '7-11': 10 }"],
+            ['Monthly USDT', 'USDT Reward Estimate'],
+            ['Monthly CNYT', 'CNYT Reward Estimate'],
+            ['Contract Period:', 'Program Period:'],
+            ['12 Months</span>', 'At Maturity</span>'],
+            ['Safe (0% Fee)', 'Full Principal Return'],
+            ['I agree to the V7.2 asset management policy and understand the withdrawal fees.', 'I agree to the V8.6 asset management policy and understand the withdrawal fees.'],
+            ['V6.0 Master Plan Edition', 'V8.6 Master Plan Edition'],
+
+            // Packages
+            ["{ id: 'flexible', name: 'Flexible', price: '$100', roi: '48%~', period: 'No Lock-in', color: 'gray', icon: Shield, cnyt: 'None' }", "{ id: 'flexible', name: 'Flexible', price: '$100', roi: '48%~', period: 'No Lock-in', color: 'gray', icon: Shield, cnyt: 'No CNYT' }"],
+            ["{ id: 'basic', name: 'Basic', price: '$200', roi: '84%~', period: '12 Months', color: 'orange', icon: Box, cnyt: '2%~' }", "{ id: 'basic', name: 'Basic', price: '$200', roi: '84%~', period: 'Recommended 12M', color: 'orange', icon: Box, popular: true, cnyt: '+1.68% CNYT' }"],
+            ["{ id: 'standard', name: 'Standard', price: '$500', roi: '108%~', period: '12 Months', color: 'blue', icon: Crown, popular: true, cnyt: '4%~' }", "{ id: 'standard', name: 'Standard', price: '$500', roi: '108%~', period: 'Recommended 12M', color: 'blue', icon: Crown, cnyt: '+4.32% CNYT' }"],
+            ["{ id: 'premium', name: 'Premium', price: '$1,000', roi: '132%~', period: '12 Months', color: 'gold', icon: Zap, cnyt: '6%~' }", "{ id: 'premium', name: 'Premium', price: '$1,000', roi: '132%~', period: 'Recommended 12M', color: 'gold', icon: Zap, cnyt: '+7.92% CNYT' }"],
+            ["{ id: 'vip', name: 'VIP', price: '$5,000', roi: '216%~', period: '12 Months', color: 'red', icon: Star, cnyt: '10%~' }", "{ id: 'vip', name: 'VIP', price: '$5,000', roi: '216%~', period: 'Recommended 12M', color: 'red', icon: Star, cnyt: '+21.6% CNYT' }"],
+            ['>Bonus</span>', '>CNYT</span>'],
+
+            // Wallet and demo package data
+            ["{ label: 'CNYT TOKENS', value: '85,000', unit: 'USDT'", "{ label: 'CNYT TOKENS', value: '85,000', unit: 'CNYT'"],
+            ['Matching Commission', 'Rollup Performance Reward'],
+            ["type: 'MATCHING'", "type: 'ROLLUP'"],
+            ["{ type: 'VIP', investment: 1000", "{ type: 'VIP', investment: 5000"],
+            ["{ type: 'Standard', investment: 800", "{ type: 'Standard', investment: 500"],
+            ["{ type: 'Basic', investment: 500", "{ type: 'Basic', investment: 200"],
+            ["{ type: 'Flexible', investment: 200", "{ type: 'Flexible', investment: 100"],
+
+            // Crypto AI
+            ['useState({ daily: 1.25, cnyt: 200.42, roi: 23.54, winRate: 98.86 })', 'useState({ daily: 1.25, cnyt: 200.42, roi: 17.8, range: \'14-22%\' })'],
+            ['useState(3500)', 'useState(6800)'],
+            ['3500 + parseFloat(noise)', '6800 + parseFloat(noise)'],
+            ["{ label: 'ROI', value: `${metrics.roi.toFixed(1)}%`, icon: TrendingUp }", "{ label: '30D Avg', value: `${metrics.roi.toFixed(1)}%`, icon: TrendingUp }"],
+            ["{ label: 'Win', value: `${metrics.winRate}%`, icon: Target }", "{ label: 'Range', value: metrics.range, icon: Target }"],
+            ['0 - 6 Months', '0 - 3 Months'],
+            ['7 - 9 Months', '4 - 6 Months'],
+            ['10 - 11 Months', '7 - 11 Months'],
+            ['15% CAPITAL LOSS', '10% CAPITAL LOSS'],
+            ['15% of Capital', '30% / 20% / 10%'],
+            ['Future Daily Dividends', 'Future Variable Rewards'],
+            ['Permanently Stopped', 'Future Accrual Stopped'],
+            ['Critical Warning: Immediate termination will disconnect your node from the HFT pool. All future daily dividends and CNYT rewards will be permanently forfeited.', 'Critical Warning: Immediate termination will end the active program allocation. Future variable performance rewards and CNYT accrual will stop.'],
+            ['* This action cannot be reversed after confirmation.', '* At maturity, principal return follows the active V8.6 policy.'],
+
+            // Home
+            ['Neural Core V6', 'Neural Core V8.6'],
+            ['Live Earnings', 'Performance Snapshot'],
+            ['Live Trades', 'Market Activity'],
+            ['AI-Powered', 'AI-Assisted'],
+            ['Passive Income', 'Performance Platform'],
+            ['Wealth Starts Automatically', 'Historical average 17.8%, observed range 14-22%'],
+            ['24/7 Automated Trading & Rewards Platform', 'Variable AI betting performance and network rewards'],
+            ['title="AUM" value={142} suffix="M+"', 'title="ASSETS" value={47} suffix=".2M"'],
+            ['title="GLOBAL" value={840} suffix="K+"', 'title="30D AVG" value={17} suffix=".8%"'],
+            ['title="PROFIT" value={236} suffix="%"', 'title="RANGE" value={14} suffix="-22%"'],
+            ['Our V6 Core architecture continuously evolves by learning micro-pattern anomalies across disparate exchanges, identifying arbitrage and directional trend shifts before they manifest in market price.', 'Our V8.6 Core architecture continuously evolves by learning micro-pattern anomalies across disparate exchanges, identifying betting-performance signals while applying policy-defined risk controls.'],
+
+            // Rewards
+            ['Security Protocol V7.2 Active', 'Security Protocol V8.6 Active'],
+            ['Max Depth', 'Policy Depth'],
+            ['25 LV', 'Up to 25'],
+            ['Body $500 / Team $3k • 3x Lower Rank Subs', 'Standard $500+ / 3 Direct / 3 White / Team $1k'],
+            ['Body $1k / Team $10k • 3x Lower Rank Subs', 'Premium $1k+ / 5 Direct / 3 Blue / Team $10k'],
+            ['Body $5k / Team $100k • 3x Lower Rank Subs', 'VIP $5k+ / 10 Direct / 3 Purple / Team $100k'],
+            ['Body $10k / Team $1M • 3x Lower Rank Subs', '$10k+ / 15 Direct / 3 Red / Team $1M'],
+            ['3-TIER ROLLUP', '3-LEVEL ROLLUP'],
+            ['7-TIER ROLLUP', '7-LEVEL ROLLUP'],
+            ['15-TIER + 1% POOL', '15-LEVEL + 1% POOL'],
+            ['25-TIER + 1% POOL', '25-LEVEL + 2% POOL'],
+            ['7.0% Instant Commission', '10% Direct Bonus'],
+            ['7.0% instant commission', 'one-time 10% direct referral bonus'],
+
+            // Referral
+            ['20% Commission Pool', '10% Direct Bonus'],
+            ['20% of platform fees allocated to referral rewards', 'One-time bonus on eligible referred package allocations'],
+            ['Earn generous commissions by referring new users to LONGRISE. Build your network and unlock higher tiers with increased rewards.', 'Direct referrals receive a one-time 10% package bonus. Network rewards follow V8.6 rank, rollup, and pool rules.'],
+            ['The LONGRISE Referral Program lets you earn rewards by inviting your network to join. When your referrals participate in package investments, you earn a commission on their investments. The commission structure is tied to your staking tier.', 'The LONGRISE Referral Program lets you earn rewards by inviting your network to join. Eligible package allocations create a one-time direct bonus, while network performance rewards depend on verified rank conditions.'],
+            ['Commission Structure', 'Policy Reward Structure'],
+            ['20% referral commission pool', '10% direct referral bonus'],
+            ['20% of that fee is allocated to the referral pool', 'Rollup rewards apply to betting-profit performance, not the principal amount'],
+            ['You earn a percentage of that 20% based on your tier', 'Global pools apply only to qualifying Red and Black Dragon ranks'],
+            ['Tier Benefits & Milestones', 'Rank Benefits & Milestones'],
+            ['Referrals must complete KYC verification to count towards your commission', 'Referrals must complete KYC verification to count toward policy rewards'],
+            ['All referral rewards are paid in USDT and deposited directly to your account', 'Direct referral rewards are one-time and calculated from eligible package allocation'],
+            ['Pending USDT commissions will automatically convert to CNYT once they reach $10 minimum', 'Rollup rewards are calculated from downstream betting-profit performance according to V8.6 decay rules'],
+            ['Commission tiers are updated monthly based on your cumulative referral milestones', 'Rank eligibility depends on package, direct referrals, sub-ranks, and team sales conditions'],
+            ['The referral system is fully on-chain and all transactions are transparent on the blockchain', 'Reserve-stage CNYT conversion follows the active treasury and reserve policy'],
+
+            // Docs and guide
+            ['V6.0', 'V8.6'],
+            ['V6 Neural Engine', 'V8.6 Neural Engine'],
+            ['V6 neural architecture', 'V8.6 neural architecture'],
+            ['15% penalty', 'V8.6 graduated early-withdrawal fee'],
+            ['15% capital loss penalty', 'graduated early-withdrawal fee'],
+            ['Check early termination penalties (15%)', 'Check V8.6 early-withdrawal fee schedule'],
+            ['matching', 'rollup'],
+            ['Matching', 'Rollup'],
+
+            // Minified dist fragments
+            ['cnyt:"None"', 'cnyt:"No CNYT"'],
+            ['children:"Bonus"', 'children:"CNYT"'],
+            ['children:"Neural Core V6"', 'children:"Neural Core V8.6"'],
+            ['children:"Live Earnings"', 'children:"Performance Snapshot"'],
+            ['children:"Live Trades"', 'children:"Market Activity"'],
+            ['"AI-Powered "', '"AI-Assisted "'],
+            ['children:"Passive Income"', 'children:"Performance Platform"'],
+            ['"Wealth Starts Automatically"', '"Historical average 17.8%, observed range 14-22%"'],
+            ['"24/7 Automated Trading & Rewards Platform"', '"Variable AI betting performance and network rewards"'],
+            ['title:"AUM",value:142,suffix:"M+"', 'title:"ASSETS",value:47,suffix:".2M"'],
+            ['title:"GLOBAL",value:840,suffix:"K+"', 'title:"30D AVG",value:17,suffix:".8%"'],
+            ['title:"PROFIT",value:236,suffix:"%"', 'title:"RANGE",value:14,suffix:"-22%"'],
+            ['children:"Monthly USDT"', 'children:"USDT Reward Estimate"'],
+            ['children:"Monthly CNYT"', 'children:"CNYT Reward Estimate"'],
+            ['"Contract Period: "', '"Program Period: "'],
+            ['children:"12 Months"', 'children:"At Maturity"'],
+            ['children:"Safe (0% Fee)"', 'children:"Full Principal Return"'],
+            ['children:"25 LV"', 'children:"Up to 25"'],
+            ['children:"Max Depth"', 'children:"Policy Depth"'],
+            ['unit:"USDT",icon:ki,tag:"REWARDS"', 'unit:"CNYT",icon:ki,tag:"REWARDS"'],
+            ['label:"Matching Commission"', 'label:"Rollup Performance Reward"'],
+            ['type:"MATCHING"', 'type:"ROLLUP"'],
+            ['type:"VIP",investment:1e3', 'type:"VIP",investment:5e3'],
+            ['type:"Standard",investment:800', 'type:"Standard",investment:500'],
+            ['type:"Basic",investment:500', 'type:"Basic",investment:200'],
+            ['type:"Flexible",investment:200', 'type:"Flexible",investment:100'],
+            ['useState({daily:1.25,cnyt:200.42,roi:23.54,winRate:98.86})', 'useState({daily:1.25,cnyt:200.42,roi:17.8,range:"14-22%"})'],
+            ['useState(3500)', 'useState(6800)'],
+            ['setJitterValue(3500+parseFloat', 'setJitterValue(6800+parseFloat'],
+            ['label:"ROI"', 'label:"30D Avg"'],
+            ['label:"Win",value:`${S.winRate}%`', 'label:"Range",value:S.range'],
+          ];
+
+          const regex = [
+            [/period:"12 Months",color:"orange",icon:[^,]+,cnyt:"2%~"/g, 'period:"Recommended 12M",color:"orange",icon:I5,popular:!0,cnyt:"+1.68% CNYT"'],
+            [/period:"12 Months",color:"blue",icon:[^,]+,popular:!0,cnyt:"4%~"/g, 'period:"Recommended 12M",color:"blue",icon:oa,cnyt:"+4.32% CNYT"'],
+            [/period:"12 Months",color:"gold",icon:[^,]+,cnyt:"6%~"/g, 'period:"Recommended 12M",color:"gold",icon:ca,cnyt:"+7.92% CNYT"'],
+            [/period:"12 Months",color:"red",icon:[^,]+,cnyt:"10%~"/g, 'period:"Recommended 12M",color:"red",icon:zy,cnyt:"+21.6% CNYT"'],
+            [/Body \$500 \/ Team \$3k[^"}]*/g, 'Standard $500+ / 3 Direct / 3 White / Team $1k'],
+            [/Body \$1k \/ Team \$10k[^"}]*/g, 'Premium $1k+ / 5 Direct / 3 Blue / Team $10k'],
+            [/Body \$5k \/ Team \$100k[^"}]*/g, 'VIP $5k+ / 10 Direct / 3 Purple / Team $100k'],
+            [/Body \$10k \/ Team \$1M[^"}]*/g, '$10k+ / 15 Direct / 3 Red / Team $1M'],
+            [/Your commission percentage is tied to[^.]*\./g, 'Direct referral rewards are calculated as 10% of the eligible package amount.'],
+            [/If a referral invests \$100,000[^.]*\./g, 'If a direct referral activates a $5,000 VIP package, the one-time direct referral bonus is $500.'],
+          ];
+
+          const legacyNeedles = [
+            'V7.2', 'Neural Core V6', 'V6 Core architecture', 'V6.0 Master Plan Edition',
+            'Passive Income', 'Wealth Starts Automatically', '20% Commission Pool',
+            '20% referral commission pool', '7.0% Instant Commission', '7.0% instant commission',
+            '25 LV', 'Monthly USDT', 'Monthly CNYT', 'Contract Period', 'Safe (0% Fee)',
+            '15% of Capital', 'Future Daily Dividends', 'Permanently Stopped',
+            'Body $500 / Team $3k', 'Body $1k / Team $10k', 'Body $5k / Team $100k', 'Body $10k / Team $1M'
+          ];
+
+          function walk(dir) {
+            for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+              const full = path.join(dir, entry.name);
+              if (entry.isDirectory()) walk(full);
+              else if (/\.(tsx?|jsx?|html|md|css|json)$/i.test(entry.name)) files.push(full);
+            }
+          }
+
+          const files = [];
+          walk(root);
+          for (const file of files) {
+            let text = fs.readFileSync(file, 'utf8');
+            for (const [from, to] of exact) text = text.split(from).join(to);
+            for (const [from, to] of regex) text = text.replace(from, to);
+            const found = legacyNeedles.filter((needle) => text.includes(needle));
+            if (found.length && /[\\/]src[\\/]|[\\/]dist[\\/]/.test(file)) {
+              throw new Error(`${file} still contains: ${found.join(', ')}`);
+            }
+            fs.writeFileSync(file, text);
+          }
+          NODE
+
+          rm -f "$ZIP"
+          python3 <<'PY'
+          import os, zipfile
+          zip_name = 'LONGRISE-AI-MAIN-main (2).zip'
+          base = '__zipwork'
+          with zipfile.ZipFile(zip_name, 'w', compression=zipfile.ZIP_DEFLATED) as z:
+              for root, dirs, files in os.walk(os.path.join(base, 'LONGRISE-AI-MAIN-main')):
+                  dirs[:] = [d for d in dirs if d not in {'.git', 'node_modules'}]
+                  for name in files:
+                      full = os.path.join(root, name)
+                      arc = os.path.relpath(full, base).replace(os.sep, '/')
+                      z.write(full, arc)
+          PY
+
+      - name: Commit updated zip
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "LONGRISE-AI-MAIN-main (2).zip"
+          if git diff --cached --quiet; then
+            echo "Packaged zip already up to date."
+          else
+            git commit -m "Update packaged LONGRISE zip for V8.6 policy"
+            git push
+          fi
