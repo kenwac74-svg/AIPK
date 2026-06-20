@@ -1,0 +1,257 @@
+/* ============================================================
+   LONGRISE PC — EARN page (replaces CRYPTO AI / 네비 01)
+   Injected via reskin/earn-pc.js into the compiled app's <main>.
+   LRHP gold/black design system. Scoped under .earn-pc so it
+   never leaks into the rest of the compiled app.
+   ============================================================ */
+.earn-pc{
+  /* LRHP tokens (scoped) */
+  --gold-base:#b99a6b; --gold-highlight:#e5c398; --gold-glow:#fbbf24; --gold-deep:#d97706;
+  --green:#10b981; --red:#ef4444; --blue:#3b82f6;
+  --ink:#070504; --void:#0f0a09; --panel:#150f0d;
+  --cream:#fcfaf7; --muted:#a79c93;
+  --line-soft:rgba(185,154,107,0.15); --line-mid:rgba(185,154,107,0.30);
+
+  position:relative; z-index:1;
+  width:100%;
+  max-width:1240px;
+  margin:0 auto;
+  padding:120px 40px 80px;
+  color:var(--cream);
+  font-family:"Inter",system-ui,sans-serif;
+  box-sizing:border-box;
+  animation:earnFade .5s ease both;
+}
+@media (max-width:1100px){ .earn-pc{ padding:104px 24px 72px; } }
+@keyframes earnFade{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:none;} }
+
+.earn-pc *{ box-sizing:border-box; }
+.earn-pc .num{ font-family:"JetBrains Mono",ui-monospace,monospace; font-variant-numeric:tabular-nums; }
+.earn-pc .display{ font-family:"Cinzel",serif; }
+.earn-pc .green{ color:var(--green); }
+.earn-pc .red{ color:var(--red); }
+.earn-pc .gold-text{
+  background:linear-gradient(180deg,var(--gold-highlight),var(--gold-base));
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+
+/* ---- Eyebrow / labels ---- */
+.earn-pc .eyebrow{
+  font-size:11px; letter-spacing:.28em; text-transform:uppercase;
+  color:var(--gold-base); font-weight:700;
+}
+.earn-pc .muted{ color:var(--muted); }
+
+/* ---- Top bar: greeting + rank ---- */
+.earn-pc .epc-top{
+  display:flex; align-items:flex-end; justify-content:space-between; gap:20px;
+  margin-bottom:26px;
+}
+.earn-pc .epc-greet .name{
+  font-size:34px; font-weight:800; letter-spacing:.04em; margin-top:6px; color:var(--cream);
+}
+.earn-pc .epc-rank{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:9px 16px; border-radius:999px;
+  border:1px solid var(--line-mid);
+  background:linear-gradient(180deg,rgba(185,154,107,.12),rgba(185,154,107,.04));
+  font-size:12px; font-weight:800; letter-spacing:.16em; color:var(--gold-highlight);
+}
+.earn-pc .epc-rank .dot{ width:7px; height:7px; border-radius:50%; background:var(--gold-glow); box-shadow:0 0 8px var(--gold-glow); }
+
+/* ---- Grid ---- */
+.earn-pc .epc-grid{
+  display:grid; grid-template-columns:repeat(12,1fr); gap:20px;
+}
+.earn-pc .col-8{ grid-column:span 8; } .earn-pc .col-7{ grid-column:span 7; }
+.earn-pc .col-5{ grid-column:span 5; } .earn-pc .col-4{ grid-column:span 4; }
+.earn-pc .col-12{ grid-column:span 12; }
+@media (max-width:1000px){
+  .earn-pc .col-8,.earn-pc .col-7,.earn-pc .col-5,.earn-pc .col-4{ grid-column:span 12; }
+}
+
+/* ---- Card ---- */
+.earn-pc .card{
+  position:relative; border-radius:18px;
+  background:linear-gradient(180deg,var(--panel),var(--void));
+  border:1px solid var(--line-soft);
+  padding:22px;
+  box-shadow:0 24px 60px -30px rgba(0,0,0,.85);
+}
+.earn-pc .card.hero{
+  border-color:var(--line-mid);
+  background:
+    radial-gradient(120% 140% at 0% 0%, rgba(251,191,36,.08), transparent 55%),
+    linear-gradient(180deg,#1a1310,var(--void));
+}
+.earn-pc .card-head{
+  display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px;
+}
+.earn-pc .card-title{ font-size:13px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:var(--cream); }
+.earn-pc .card-action{
+  font-size:11.5px; font-weight:700; letter-spacing:.06em; color:var(--gold-base);
+  background:none; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:5px;
+}
+.earn-pc .card-action:hover{ color:var(--gold-highlight); }
+
+/* ---- Pills ---- */
+.earn-pc .pill{
+  display:inline-flex; align-items:center; gap:6px;
+  font-size:10.5px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;
+  padding:5px 10px; border-radius:999px;
+  border:1px solid var(--line-soft); color:var(--muted);
+}
+.earn-pc .pill.live{ color:var(--green); border-color:rgba(16,185,129,.3); }
+.earn-pc .pill.live::before{ content:""; width:6px; height:6px; border-radius:50%; background:var(--green); box-shadow:0 0 8px var(--green); animation:epcPulse 1.6s ease infinite; }
+@keyframes epcPulse{ 0%,100%{opacity:1;} 50%{opacity:.35;} }
+
+/* ---- Hero: total assets ---- */
+.earn-pc .epc-total{
+  font-size:58px; font-weight:800; letter-spacing:.01em; line-height:1; margin:14px 0 8px;
+}
+.earn-pc .epc-sub{ display:flex; gap:10px; align-items:baseline; }
+.earn-pc .epc-sub .delta{ font-size:16px; font-weight:800; }
+.earn-pc .epc-spark{ margin:18px 0 6px; }
+.earn-pc .btn-gold{
+  display:inline-flex; align-items:center; justify-content:center; gap:9px;
+  margin-top:18px; width:100%;
+  padding:15px 20px; border-radius:12px; border:none; cursor:pointer;
+  font-family:"Inter",sans-serif; font-size:13.5px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;
+  color:#1a1208;
+  background:linear-gradient(180deg,var(--gold-highlight),var(--gold-deep));
+  box-shadow:0 12px 30px -10px rgba(217,119,6,.5);
+  transition:filter .2s, transform .1s;
+}
+.earn-pc .btn-gold:hover{ filter:brightness(1.07); }
+.earn-pc .btn-gold:active{ transform:translateY(1px); }
+
+/* ---- Snapshot stat tiles ---- */
+.earn-pc .snap{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.earn-pc .snap-tile{
+  border:1px solid var(--line-soft); border-radius:14px; padding:16px;
+  background:rgba(255,255,255,.015);
+}
+.earn-pc .snap-tile .v{ font-size:26px; font-weight:800; }
+.earn-pc .snap-tile .v small{ font-size:13px; font-weight:700; color:var(--muted); margin-left:2px; }
+.earn-pc .snap-tile .l{ font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); margin-top:4px; }
+
+/* ---- AI engine ---- */
+.earn-pc .eng-head{ display:flex; align-items:center; gap:11px; }
+.earn-pc .eng-head img{ width:30px; height:auto; }
+.earn-pc .eng-name{ font-size:14px; font-weight:800; letter-spacing:.12em; }
+.earn-pc .eng-tag{ font-size:10.5px; color:var(--muted); letter-spacing:.04em; }
+.earn-pc .fchart{ margin-top:6px; }
+.earn-pc .fchart-bar{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+.earn-pc .fchart-pair{ display:flex; align-items:center; gap:8px; }
+.earn-pc .fchart-sym{ font-weight:800; font-size:13px; letter-spacing:.04em; }
+.earn-pc .fchart-perp{ font-size:9px; font-weight:800; letter-spacing:.14em; color:var(--gold-base); border:1px solid var(--line-mid); border-radius:5px; padding:2px 6px; }
+.earn-pc .fchart-px{ font-size:18px; font-weight:800; }
+.earn-pc .fchart-canvas{ height:260px; position:relative; }
+.earn-pc .fchart-canvas canvas{ width:100%; height:100%; display:block; }
+@media (max-width:1000px){ .earn-pc .fchart-canvas{ height:200px; } }
+
+.earn-pc .stat-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:16px; }
+.earn-pc .stat-grid .st{ border:1px solid var(--line-soft); border-radius:12px; padding:13px; text-align:center; background:rgba(255,255,255,.015); }
+.earn-pc .stat-grid .st .v{ font-size:21px; font-weight:800; }
+.earn-pc .stat-grid .st .v small{ font-size:11px; color:var(--muted); margin-left:1px; }
+.earn-pc .stat-grid .st .l{ font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin-top:4px; }
+
+.earn-pc .terminal{
+  margin-top:16px; border-radius:12px; padding:14px 16px;
+  background:rgba(0,0,0,.45); border:1px solid var(--line-soft);
+  font-family:"JetBrains Mono",monospace; font-size:11.5px; line-height:1.9; color:var(--muted);
+}
+.earn-pc .terminal .g{ color:var(--green); } .earn-pc .terminal .a{ color:var(--gold-glow); }
+
+/* ---- Packages ---- */
+.earn-pc .pkg{ padding:15px 0; border-bottom:1px solid var(--line-soft); }
+.earn-pc .pkg:last-child{ border-bottom:none; padding-bottom:2px; }
+.earn-pc .pkg-top{ display:flex; align-items:center; justify-content:space-between; }
+.earn-pc .pkg-name{ font-size:14px; font-weight:700; letter-spacing:.06em; }
+.earn-pc .pkg-meta{ display:flex; justify-content:space-between; font-size:11.5px; margin:7px 0 9px; color:var(--muted); }
+.earn-pc .bar{ height:6px; border-radius:999px; background:rgba(255,255,255,.07); overflow:hidden; }
+.earn-pc .bar > i{ display:block; height:100%; border-radius:999px; background:linear-gradient(90deg,var(--gold-base),var(--gold-glow)); }
+.earn-pc .pkg-foot{ display:flex; justify-content:space-between; font-size:10.5px; color:var(--muted); margin-top:7px; }
+
+/* ---- Live trades / row list ---- */
+.earn-pc .row{ display:flex; align-items:center; gap:13px; padding:12px 0; border-bottom:1px solid var(--line-soft); }
+.earn-pc .row:last-child{ border-bottom:none; }
+.earn-pc .disc{ width:38px; height:38px; border-radius:11px; display:grid; place-items:center; flex:0 0 auto; font-weight:800; }
+.earn-pc .disc.up{ background:rgba(16,185,129,.14); color:var(--green); }
+.earn-pc .disc.down{ background:rgba(239,68,68,.14); color:var(--red); }
+.earn-pc .disc.news{ background:rgba(185,154,107,.12); color:var(--gold-highlight); }
+.earn-pc .row-main{ flex:1 1 auto; min-width:0; }
+.earn-pc .row-title{ font-size:13.5px; font-weight:700; }
+.earn-pc .row-sub{ font-size:11px; color:var(--muted); margin-top:2px; }
+.earn-pc .row-trail{ font-size:14px; font-weight:800; white-space:nowrap; }
+
+/* ---- 7-day earnings ---- */
+.earn-pc .week-total{ display:flex; align-items:baseline; gap:9px; margin:6px 0 16px; }
+.earn-pc .week-total .v{ font-size:26px; font-weight:800; }
+.earn-pc .week-bars{ display:grid; grid-template-columns:repeat(7,1fr); gap:8px; align-items:end; height:120px; }
+.earn-pc .week-bars .wb{ display:flex; flex-direction:column; align-items:center; gap:7px; height:100%; justify-content:flex-end; }
+.earn-pc .week-bars .wb > i{ width:100%; border-radius:5px; background:rgba(185,154,107,.28); }
+.earn-pc .week-bars .wb.last > i{ background:linear-gradient(180deg,var(--gold-glow),var(--gold-base)); }
+.earn-pc .week-bars .wb span{ font-size:9.5px; letter-spacing:.1em; color:var(--muted); }
+
+/* ---- News 2-col ---- */
+.earn-pc .news-grid{ display:grid; grid-template-columns:1fr 1fr; gap:0 28px; }
+@media (max-width:760px){ .earn-pc .news-grid{ grid-template-columns:1fr; } }
+
+/* ============================================================
+   Nav label overrides — handled in JS (text swap), these are
+   just safety styles so relabeled buttons keep proper sizing.
+   ============================================================ */
+
+/* ============================================================
+   GLOBAL FOOTER (ported from LONGRISE marketing site)
+   Injected by earn-pc.js, replaces the compiled app footer.
+   ============================================================ */
+#lr-pc-footer.lr-pc-footer{
+  --gold:#fbbf24; --gold-base:#b99a6b; --muted:#9ca3af;
+  position:relative; z-index:1;
+  margin-top:0;
+  padding:72px 0 56px;
+  background:linear-gradient(180deg,#050302 0%,#000 100%);
+  border-top:1px solid rgba(185,154,107,0.18);
+  font-family:"Inter",system-ui,sans-serif;
+  color:#cfcac4;
+}
+#lr-pc-footer .container{
+  width:100%; max-width:1180px; margin:0 auto; padding:0 40px; box-sizing:border-box;
+}
+#lr-pc-footer .footer-grid{
+  display:grid;
+  grid-template-columns:1.7fr 1fr 1fr 1fr;
+  gap:40px;
+  padding-bottom:40px;
+  border-bottom:1px solid rgba(255,255,255,0.07);
+}
+@media (max-width:880px){
+  #lr-pc-footer .footer-grid{ grid-template-columns:1fr 1fr; gap:32px; }
+}
+@media (max-width:520px){
+  #lr-pc-footer .footer-grid{ grid-template-columns:1fr; }
+  #lr-pc-footer.lr-pc-footer{ padding:56px 0 44px; }
+}
+#lr-pc-footer .brand{
+  font-family:"Cinzel",serif; font-weight:800; font-size:24px; letter-spacing:.06em;
+  color:#fff; margin-bottom:16px;
+}
+#lr-pc-footer .brand span{ color:var(--gold); }
+#lr-pc-footer .footer-grid > div > p{
+  margin:0; font-size:13px; line-height:1.7; color:var(--muted); max-width:42ch;
+}
+#lr-pc-footer h5{
+  margin:0 0 16px; font-size:11px; font-weight:800; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--gold-base);
+}
+#lr-pc-footer .footer-grid > div > a{
+  display:block; margin:9px 0; font-size:13px; color:var(--muted); text-decoration:none;
+  transition:color .2s ease;
+}
+#lr-pc-footer .footer-grid > div > a:hover{ color:var(--gold); }
+#lr-pc-footer .legal{
+  margin-top:28px; font-size:11.5px; line-height:1.7; color:#6f6a64; letter-spacing:.01em;
+}
+
