@@ -143,73 +143,102 @@
   function topNavButtons() {
     var nav = document.querySelector("nav");
     if (!nav) return [];
-    var buttons = Array.prototype.slice.call(nav.querySelectorAll("button"));
-    var primary = buttons.filter(function (btn) {
-      return (btn.className || "").indexOf("border-[1.5px]") !== -1;
-    });
-    return primary.length >= 3 ? primary : buttons;
+    return Array.prototype.slice.call(nav.querySelectorAll("button"));
   }
-  /* Keep navigation identity independent from visible text. Browser translation
-     rewrites labels, but the React navigation order remains stable. */
-  function ensureNavIdentity() {
-    var ids = ["earn", "plans", "network", "market", "wallet"];
-    var btns = topNavButtons();
-    for (var i = 0; i < btns.length && i < ids.length; i++) {
-      if (!btns[i].dataset.lrNav) btns[i].dataset.lrNav = ids[i];
+
+  /* =====================================================================
+     NEWS & UPDATES — top main-menu tab (injected).
+     The compiled app already ships the "Official Announcements" page; it is
+     reachable from the account menu → "News & Updates". We add a primary
+     nav tab that triggers that same navigation, so News & Updates lives in
+     the TOP MENU (not on the EARN page). Bundle untouched.
+     ===================================================================== */
+  var NEWS_NAV_ID = "lr-nav-news";
+  var navState = null; /* "news" when our News tab is the active view */
+  var NAV_BASE = "px-4 py-2.5 rounded-lg text-[12px] font-black uppercase tracking-widest transition-all duration-300 flex items-center gap-2 border-[1.5px]";
+  var NAV_INACTIVE = NAV_BASE + " bg-transparent text-gray-300 border-red-900/40 hover:text-white hover:border-red-600/60";
+  var NAV_ACTIVE = NAV_BASE + " bg-red-600/10 text-white border-red-600/60 shadow-[0_0_15px_rgba(220,38,38,0.2)]";
+  var NEWS_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8M15 18h-5M10 6h8v4h-8z"/></svg>';
+
+  function accountBtn() { return document.querySelector('nav button[aria-label="Account menu"]'); }
+  /* navigate to the bundle's Official Announcements page via the account menu */
+  function goNews() {
+    var u = accountBtn(); if (!u) return;
+    u.click();
+    setTimeout(function () {
+      var btns = document.querySelectorAll("button"), nu = null;
+      for (var i = 0; i < btns.length; i++) {
+        if (btns[i].id === NEWS_NAV_ID) continue; /* skip our own nav tab */
+        if (/^News\s*&\s*Updates$/i.test((btns[i].textContent || "").trim())) { nu = btns[i]; break; }
+      }
+      if (nu) nu.click();
+      /* close the account dropdown if it stayed open */
+      setTimeout(function () { if (accountBtn() && document.querySelector('[role="menu"], [aria-label="Account menu"][aria-expanded="true"]')) { /* React usually closes it */ } }, 40);
+    }, 70);
+  }
+  /* inject + keep the News tab in the top menu, styled like native tabs */
+  function ensureNewsNav() {
+    var menu = topMenuButtons();
+    if (!menu.length) return;
+    var container = menu[menu.length - 1].parentNode; /* the flex row holding the tabs */
+    var btn = document.getElementById(NEWS_NAV_ID);
+    if (!btn) {
+      btn = document.createElement("button");
+      btn.id = NEWS_NAV_ID;
+      btn.type = "button";
+      btn.innerHTML = NEWS_ICON + '<span>NEWS &amp; UPDATES</span>';
+      btn.addEventListener("click", function () { navState = "news"; goNews(); });
+      container.appendChild(btn);
+    } else if (btn.parentNode !== container) {
+      container.appendChild(btn); /* re-attach if React re-rendered the row */
     }
-    return btns;
+    btn.className = (navState === "news") ? NAV_ACTIVE : NAV_INACTIVE;
   }
+
   /* find a top-nav button by its (original or relabeled) text */
   function findNavBtn(matches) {
-    var idMap = {
-      "EARN": "earn", "CRYPTO AI": "earn",
-      "PLANS": "plans", "PACKAGES": "plans",
-      "NETWORK": "network", "REWARDS": "network",
-      "MARKET": "market", "WALLET": "wallet"
-    };
-    var btns = ensureNavIdentity();
-    for (var m = 0; m < matches.length; m++) {
-      var wantedId = idMap[matches[m]];
-      if (!wantedId) continue;
-      for (var n = 0; n < btns.length; n++) {
-        if (btns[n].dataset.lrNav === wantedId) return btns[n];
-      }
-    }
+    var btns = topNavButtons();
     for (var i = 0; i < btns.length; i++) {
       var txt = (btns[i].textContent || "").trim().toUpperCase();
       if (matches.indexOf(txt) !== -1) return btns[i];
     }
     return null;
   }
+  /* The 5 primary menu buttons, identified by their STYLING classes — NOT by
+     text. This is translation-proof: Google/browser translation rewrites the
+     button labels (EARN→Korean) but never the className, so detection here
+     keeps working. DOM order is fixed: [EARN, PLANS, NETWORK, MARKET, WALLET]. */
+  function topMenuButtons() {
+    var btns = topNavButtons(), out = [];
+    for (var i = 0; i < btns.length; i++) {
+      if (btns[i].id === NEWS_NAV_ID) continue; /* exclude our injected tab */
+      var c = btns[i].className || "";
+      if (/tracking-widest/.test(c) && /border-\[1\.5px\]/.test(c)) out.push(btns[i]);
+    }
+    return out;
+  }
   function isEarnActive() {
-    var b = findNavBtn(["EARN", "CRYPTO AI"]);
+    var menu = topMenuButtons();
+    var b = menu[0]; /* index 0 = EARN tab, regardless of translated label */
     if (!b) return false;
     /* active tab = solid bg-red-600/10. NOTE: do NOT match border-red-600/60,
        it also appears in the inactive hover:border-red-600/60 class. */
     return /(^|\s)bg-red-600\/10(\s|$)/.test(b.className || "");
   }
   function goPlans() {
-    var b = findNavBtn(["PLANS", "PACKAGES"]);
-    if (b) b.click();
+    var menu = topMenuButtons();
+    if (menu[1]) menu[1].click(); /* index 1 = PLANS tab */
   }
 
   /* relabel nav button text in place (only the visible label, keep icon) */
   function relabelNav() {
-    var labels = { earn: "EARN", plans: "PLANS", network: "NETWORK" };
-    var btns = ensureNavIdentity();
+    var btns = topNavButtons();
     for (var i = 0; i < btns.length; i++) {
       var btn = btns[i];
-      var label = labels[btn.dataset.lrNav];
-      if (label && !btn.dataset.lrRelabeled) {
-        setBtnLabel(btn, label);
-        btn.dataset.lrRelabeled = "true";
-        continue;
-      }
       var cur = (btn.textContent || "").trim().toUpperCase();
       for (var r = 0; r < RELABEL.length; r++) {
-        if (!btn.dataset.lrRelabeled && cur === RELABEL[r].from) {
+        if (cur === RELABEL[r].from) {
           setBtnLabel(btn, RELABEL[r].to);
-          btn.dataset.lrRelabeled = "true";
         }
       }
     }
@@ -334,16 +363,6 @@
           '<div class="week-bars">' +
             D.weekEarnings.map(function (v, i) {
               return '<div class="wb' + (i === 6 ? ' last' : '') + '"><i style="height:' + Math.round((v / weekMax) * 92) + 'px"></i><span>' + days[i] + '</span></div>';
-            }).join("") +
-          '</div>' +
-        '</div>' +
-
-        /* NEWS */
-        '<div class="card col-12">' +
-          '<div class="card-head"><div class="card-title">News &amp; updates</div></div>' +
-          '<div class="news-grid">' +
-            D.news.map(function (n) {
-              return '<div class="row"><div class="disc news">◆</div><div class="row-main"><div class="row-title">' + n.title + '</div><div class="row-sub">' + n.tag + ' · ' + n.date + '</div></div></div>';
             }).join("") +
           '</div>' +
         '</div>' +
@@ -482,6 +501,7 @@
     applying = true;
     try {
       relabelNav();
+      ensureNewsNav();
       swapCopy();
       hidePlatformSettings();
       ensureFooter();
@@ -498,8 +518,13 @@
     if (!document.querySelector("nav") || !getMain()) { setTimeout(boot, 120); return; }
     var obs = new MutationObserver(function () { if (!applying) schedule(); });
     obs.observe(document.getElementById("root") || document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class"] });
-    /* nav clicks → immediate reconcile */
-    document.addEventListener("click", function () { setTimeout(schedule, 0); }, true);
+    /* nav clicks → immediate reconcile; clicking a native top tab clears news state */
+    document.addEventListener("click", function (e) {
+      var t = e.target;
+      var mb = t && t.closest ? t.closest("nav button") : null;
+      if (mb && mb.id !== NEWS_NAV_ID && /tracking-widest/.test(mb.className || "")) navState = null;
+      setTimeout(schedule, 0);
+    }, true);
     schedule();
   }
 
