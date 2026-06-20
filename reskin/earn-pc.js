@@ -143,11 +143,38 @@
   function topNavButtons() {
     var nav = document.querySelector("nav");
     if (!nav) return [];
-    return Array.prototype.slice.call(nav.querySelectorAll("button"));
+    var buttons = Array.prototype.slice.call(nav.querySelectorAll("button"));
+    var primary = buttons.filter(function (btn) {
+      return (btn.className || "").indexOf("border-[1.5px]") !== -1;
+    });
+    return primary.length >= 3 ? primary : buttons;
+  }
+  /* Keep navigation identity independent from visible text. Browser translation
+     rewrites labels, but the React navigation order remains stable. */
+  function ensureNavIdentity() {
+    var ids = ["earn", "plans", "network", "market", "wallet"];
+    var btns = topNavButtons();
+    for (var i = 0; i < btns.length && i < ids.length; i++) {
+      if (!btns[i].dataset.lrNav) btns[i].dataset.lrNav = ids[i];
+    }
+    return btns;
   }
   /* find a top-nav button by its (original or relabeled) text */
   function findNavBtn(matches) {
-    var btns = topNavButtons();
+    var idMap = {
+      "EARN": "earn", "CRYPTO AI": "earn",
+      "PLANS": "plans", "PACKAGES": "plans",
+      "NETWORK": "network", "REWARDS": "network",
+      "MARKET": "market", "WALLET": "wallet"
+    };
+    var btns = ensureNavIdentity();
+    for (var m = 0; m < matches.length; m++) {
+      var wantedId = idMap[matches[m]];
+      if (!wantedId) continue;
+      for (var n = 0; n < btns.length; n++) {
+        if (btns[n].dataset.lrNav === wantedId) return btns[n];
+      }
+    }
     for (var i = 0; i < btns.length; i++) {
       var txt = (btns[i].textContent || "").trim().toUpperCase();
       if (matches.indexOf(txt) !== -1) return btns[i];
@@ -168,13 +195,21 @@
 
   /* relabel nav button text in place (only the visible label, keep icon) */
   function relabelNav() {
-    var btns = topNavButtons();
+    var labels = { earn: "EARN", plans: "PLANS", network: "NETWORK" };
+    var btns = ensureNavIdentity();
     for (var i = 0; i < btns.length; i++) {
       var btn = btns[i];
+      var label = labels[btn.dataset.lrNav];
+      if (label && !btn.dataset.lrRelabeled) {
+        setBtnLabel(btn, label);
+        btn.dataset.lrRelabeled = "true";
+        continue;
+      }
       var cur = (btn.textContent || "").trim().toUpperCase();
       for (var r = 0; r < RELABEL.length; r++) {
-        if (cur === RELABEL[r].from) {
+        if (!btn.dataset.lrRelabeled && cur === RELABEL[r].from) {
           setBtnLabel(btn, RELABEL[r].to);
+          btn.dataset.lrRelabeled = "true";
         }
       }
     }
